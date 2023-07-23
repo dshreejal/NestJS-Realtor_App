@@ -58,6 +58,12 @@ export class HomeController {
     @Body() body: UpdateHomeDto,
     @User() user: UserInfo,
   ) {
+    const realtor = await this.homeService.getRealtorByHomeId(id);
+
+    if (realtor.id !== user.id) {
+      throw new UnauthorizedException();
+    }
+
     return this.homeService.updateHome(+id, body);
   }
 
@@ -66,6 +72,11 @@ export class HomeController {
     @Param('id', ParseIntPipe) id: number,
     @User() user: UserInfo,
   ) {
+    const realtor = await this.homeService.getRealtorByHomeId(id);
+
+    if (realtor.id !== user.id) {
+      throw new UnauthorizedException();
+    }
     return this.homeService.deleteHome(+id);
   }
 }
