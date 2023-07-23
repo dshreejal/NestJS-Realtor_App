@@ -2,40 +2,64 @@ import {
   Controller,
   Get,
   Post,
+  ParseIntPipe,
   Body,
-  Patch,
+  Put,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { HomeService } from './home.service';
-import { CreateHomeDto } from './dto/home.dto';
+import { CreateHomeDto, HomeResponseDto, UpdateHomeDto } from './dto/home.dto';
+import { PropertyType } from '.prisma/client';
 
 @Controller('home')
 export class HomeController {
   constructor(private readonly homeService: HomeService) {}
 
   @Post()
-  create(@Body() createHomeDto: CreateHomeDto) {
-    return this.homeService.create(createHomeDto);
+  createHome(@Body() body: CreateHomeDto) {
+    return this.homeService.createHome(body);
   }
 
   @Get()
-  findAll() {
-    return this.homeService.findAll();
+  getHomes(
+    @Query('city') city?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+    @Query('propertyType') propertyType?: PropertyType,
+  ): Promise<HomeResponseDto[]> {
+    const price =
+      minPrice || maxPrice
+        ? {
+            ...(minPrice && { gte: parseFloat(minPrice) }),
+            ...(maxPrice && { lte: parseFloat(maxPrice) }),
+          }
+        : undefined;
+
+    const filters = {
+      ...(city && { city }),
+      ...(price && { price }),
+      ...(propertyType && { propertyType }),
+    };
+    return this.homeService.getHomes(filters);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.homeService.findOne(+id);
+  getHome(@Param('id') id: string) {
+    return this.homeService.getHome(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string) {
-    return this.homeService.update(+id);
+  @Put(':id')
+  async updateHome(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateHomeDto,
+  ) {
+    return this.homeService.updateHome(+id, body);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.homeService.remove(+id);
+  deleteHome(@Param('id', ParseIntPipe) id: number) {
+    return this.homeService.deleteHome(+id);
   }
 }
