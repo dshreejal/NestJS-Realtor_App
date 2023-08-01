@@ -13,12 +13,14 @@ import {
 import { HomeService } from './home.service';
 import { CreateHomeDto, HomeResponseDto, UpdateHomeDto } from './dto/home.dto';
 import { User, UserInfo } from 'src/user/decorators/user.decorator';
-import { PropertyType } from '.prisma/client';
+import { PropertyType, UserType } from '.prisma/client';
+import { Roles } from 'src/decorators/roles.decorator';
 
 @Controller('home')
 export class HomeController {
   constructor(private readonly homeService: HomeService) {}
 
+  @Roles(UserType.REALTOR)
   @Post()
   createHome(@Body() body: CreateHomeDto, @User() user: UserInfo) {
     return this.homeService.createHome(body, user.id);
@@ -52,6 +54,7 @@ export class HomeController {
     return this.homeService.getHome(+id);
   }
 
+  @Roles(UserType.REALTOR)
   @Put(':id')
   async updateHome(
     @Param('id', ParseIntPipe) id: number,
@@ -67,6 +70,7 @@ export class HomeController {
     return this.homeService.updateHome(+id, body);
   }
 
+  @Roles(UserType.REALTOR)
   @Delete(':id')
   async deleteHome(
     @Param('id', ParseIntPipe) id: number,
